@@ -1,0 +1,38 @@
+name: GLACIA JDK 25 Gradle compatibility
+on:
+  push:
+    branches: [feat/glacia-full-client]
+    paths:
+      - '.github/workflows/jdk25-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gradle-configuration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Install Android SDK command line tools
+        uses: android-actions/setup-android@v3
+      - name: Load Android Gradle settings submodules
+        run: |
+          git submodule update --init --depth 1 TMessagesProj_Modules/media
+          git submodule update --init --depth 1 TMessagesProj/lib/jlatexmath
+      - name: Configure local placeholder environment (not credentials)
+        run: cp secrets_for_ci.env.example secrets_for_ci.env
+      - name: Verify wrapper boots on JDK 25
+        run: |
+          chmod +x gradlew
+          ./gradlew --version
+      - name: Configure Android project using Gradle 9.1 and Java 25
+        run: ./gradlew projects --stacktrace --no-daemon
