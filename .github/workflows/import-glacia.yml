@@ -34,7 +34,7 @@ jobs:
           git remote add upstream https://github.com/arsLan4k1390/Cherrygram.git
           git fetch --no-tags --depth 1 upstream refs/heads/main
           git switch -c feat/glacia-full-client
-          git merge --allow-unrelated-histories --no-ff --no-commit FETCH_HEAD
+          git merge --squash --allow-unrelated-histories FETCH_HEAD
           # Never inherit a third-party publish/mirror automation.
           git rm -f --ignore-unmatch .github/workflows/mirror.yml
 
