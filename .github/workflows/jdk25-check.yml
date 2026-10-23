@@ -2,8 +2,6 @@ name: GLACIA JDK 25 Gradle compatibility
 on:
   push:
     branches: [feat/glacia-full-client]
-    paths:
-      - '.github/workflows/jdk25-check.yml'
   workflow_dispatch:
 
 permissions:
