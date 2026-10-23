@@ -1,0 +1,6 @@
+Placeholder for Gradle 9's strict existence validation of the implicit parent
+project :TMessagesProj_Modules:media3.
+
+Its actual media-lib-* modules are mapped to folders within the
+TMessagesProj_Modules/media Git submodule by core_settings.gradle.
+No Android code lives here; do not add module source code to this folder.
