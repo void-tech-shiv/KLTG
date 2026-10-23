@@ -1,0 +1,80 @@
+name: Import upstream and prepare GLACIA client
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/import-glacia.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: glacia-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    if: github.repository == 'void-tech-shiv/KLTG'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out destination repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Import upstream source preserving git submodules and license
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "GLACIA import bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/arsLan4k1390/Cherrygram.git
+          git fetch --no-tags --depth 1 upstream refs/heads/main
+          git switch -c feat/glacia-full-client
+          git merge --allow-unrelated-histories --no-ff --no-commit FETCH_HEAD
+          # Never inherit a third-party publish/mirror automation.
+          git rm -f --ignore-unmatch .github/workflows/mirror.yml
+
+      - name: Apply GLACIA identity and neutralize inherited promotion
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/glacia_rebrand.py
+          # Promotional video from upstream isn't needed for the Android client.
+          rm -f glacia.webm
+
+      - name: Regenerate launcher pictures using original GLACIA artwork
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --user Pillow
+          python3 scripts/glacia_icons.py
+
+      - name: Validate provenance and import structure
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f LICENSE
+          test -f ATTRIBUTION.md
+          test -f TMessagesProj/build.gradle
+          test -f gradle.properties
+          test -f .gitmodules
+          grep -q 'APP_PACKAGE=dev.voidtech.glacia' gradle.properties
+          grep -q 'GLACIA' README.md
+          if git grep -l 't.me/Cherrygram' -- '*.kt' '*.java' '*.xml' ':!ATTRIBUTION.md'; then
+            echo "Found legacy messaging promotion links, please review"
+            exit 1
+          fi
+          git status --short | tail -n 20 || true
+
+      - name: Commit and publish GLACIA source on feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git commit -m "feat: import Telegram client and apply GLACIA branding"
+          git push --set-upstream origin HEAD:refs/heads/feat/glacia-full-client
+          echo "Imported branch: https://github.com/void-tech-shiv/KLTG/tree/feat/glacia-full-client"
