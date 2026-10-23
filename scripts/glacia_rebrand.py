@@ -32,7 +32,7 @@ def transform(text: str) -> str:
     # Preserve source origin and copyright attribution, but stop old promo links.
     text = re.sub(r"https?://t\.me/(?:cherrygram[A-Za-z0-9_]*)", REPO, text, flags=re.I)
     text = re.sub(r"@Cherrygram[A-Za-z0-9_]*", "GLACIA", text, flags=re.I)
-    text = re.sub(r"https?://arslan4k1390\.github\.io/cherrygram/[^\s\\"']*", REPO, text, flags=re.I)
+    text = re.sub(r"https?://arslan4k1390\.github\.io/cherrygram/[A-Za-z0-9_/?#=&.-]*", REPO, text, flags=re.I)
     text = re.sub(r"https?://crowdin\.com/project/cherrygram", REPO, text, flags=re.I)
     text = re.sub(r"https?://github\.com/arsLan4k1390/Cherrygram", REPO, text, flags=re.I)
 
