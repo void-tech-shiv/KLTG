@@ -30,10 +30,11 @@ EXCLUDED = {".git", ".github", "LICENSE", "COPYING", "ATTRIBUTION.md"}
 
 def transform(text: str) -> str:
     # Preserve source origin and copyright attribution, but stop old promo links.
-    text = re.sub(r"https?://t\\.me/(?:cherrygram[A-Za-z0-9_]*)", REPO, text, flags=re.I)
-    text = re.sub(r"https?://arslan4k1390\\.github\\.io/cherrygram/[^\\s\\\"']*", REPO, text, flags=re.I)
-    text = re.sub(r"https?://crowdin\\.com/project/cherrygram", REPO, text, flags=re.I)
-    text = re.sub(r"https?://github\\.com/arsLan4k1390/Cherrygram", REPO, text, flags=re.I)
+    text = re.sub(r"https?://t\.me/(?:cherrygram[A-Za-z0-9_]*)", REPO, text, flags=re.I)
+    text = re.sub(r"@Cherrygram[A-Za-z0-9_]*", "GLACIA", text, flags=re.I)
+    text = re.sub(r"https?://arslan4k1390\.github\.io/cherrygram/[^\s\\"']*", REPO, text, flags=re.I)
+    text = re.sub(r"https?://crowdin\.com/project/cherrygram", REPO, text, flags=re.I)
+    text = re.sub(r"https?://github\.com/arsLan4k1390/Cherrygram", REPO, text, flags=re.I)
 
     head, body = "", text
     if body.startswith("/**") and "Copyright" in body[:800]:
@@ -46,7 +47,7 @@ def transform(text: str) -> str:
 
 changed = 0
 for p in list(ROOT.rglob("*")):
-    if not p.is_file() or any(part in EXCLUDED for part in p.relative_to(ROOT).parts):
+    if not p.is_file() or p == Path(__file__).resolve() or any(part in EXCLUDED for part in p.relative_to(ROOT).parts):
         continue
     if p.suffix.lower() not in EXTENSIONS and p.name not in {".gitignore", ".gitmodules", "Dockerfile"}:
         continue
@@ -92,11 +93,11 @@ if constants.exists():
     s = constants.read_text(encoding="utf-8")
     s = re.sub(r'var CG_AUTHOR = .*', 'var CG_AUTHOR = "GLACIA"', s)
     s = re.sub(r'(var CG_(?:CHANNEL|APKS_CHANNEL|BETA_APKS_CHANNEL|CHAT|OFFTOPIC_CHAT)_USERNAME = )".*?"',
-               r'\\1""', s)
+               r'\1""', s)
     s = re.sub(r'(var CG_(?:CHANNEL|APKS_CHANNEL|BETA_APKS_CHANNEL|CHAT)_URL = )".*?"',
-               r'\\1"' + REPO + '"', s)
+               r'\1"' + REPO + '"', s)
     s = re.sub(r'var UPDATE_APP_URL = .*', 'var UPDATE_APP_URL = "' + REPO + '"', s)
-    s = re.sub(r'const val Glacia_(?:Owner|Channel|Support|APKs|Beta|Archive) = \\d+L',
+    s = re.sub(r'const val Glacia_(?:Owner|Channel|Support|APKs|Beta|Archive) = \d+L',
                lambda m: m.group(0).split(" = ")[0] + " = 0L", s)
     # Never route GLACIA users to a legacy private chat or former owner's ID.
     constants.write_text(s, encoding="utf-8")
@@ -108,7 +109,7 @@ if about.exists():
     start = s.find("items.add(UItem.asHeader(getString(R.string.CGP_Links)));")
     end = s.find("if (!GlaciaCoreConfig.isStandalonePremiumBuild())", start)
     if start != -1 and end != -1:
-        s = s[:start] + "items.add(UItem.asHeader(getString(R.string.CGP_Links)));\\n        " + s[end:]
+        s = s[:start] + "items.add(UItem.asHeader(getString(R.string.CGP_Links)));\n        " + s[end:]
     about.write_text(s, encoding="utf-8")
 
 # Remove code paths that can process remote messages to clear the user's app data.
@@ -144,8 +145,8 @@ core = ROOT / "TMessagesProj/src/main/java/dev/voidtech/glacia/core/configs/Glac
 if core.exists():
     s = core.read_text(encoding="utf-8")
     s = s.replace("        loadMessages()", "        // Upstream remote message loader disabled in GLACIA.")
-    s = re.sub(r'        if \\(\\s*KotlinFragmentsManager\\.vreg42r2r2r1r3q1rq3\\(.*?\\n        \\}\\n',
-               '        // Upstream name-lock checks disabled for independent branding.\\n', s, flags=re.S)
+    s = re.sub(r'        if \(\s*KotlinFragmentsManager\.vreg42r2r2r1r3q1rq3\(.*?\n        \}\n',
+               '        // Upstream name-lock checks disabled for independent branding.\n', s, flags=re.S)
     s = s.replace('var autoOTA by sharedPreferences.boolean("CG_Check_Auto_OTA", true)',
                   'var autoOTA by sharedPreferences.boolean("CG_Check_Auto_OTA", false)')
     core.write_text(s, encoding="utf-8")
