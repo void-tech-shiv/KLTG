@@ -22,8 +22,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
-      - name: Install Android SDK command line tools
-        uses: android-actions/setup-android@v3
+      - name: Verify runner Android SDK
+        run: test -d "${ANDROID_HOME:-/usr/local/lib/android/sdk}"
       - name: Load Android Gradle settings submodules
         run: |
           git submodule update --init --depth 1 TMessagesProj_Modules/media
