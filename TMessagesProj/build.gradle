@@ -46,17 +46,13 @@ static def isMacOS() {
     return osName.contains('mac')
 }
 
+// Gradle 9 removed Project.exec(). ProviderFactory.exec() is supported and
+// captures stdout without launching a process through a removed DSL method.
 def getGitHash = { ->
-    def stdout = new ByteArrayOutputStream()
-    exec {
-        if (isMacOS()) { // Cause git is broken on Android Studio Meerkat Feature Drop | 2024.3.2
-            commandLine '/usr/bin/git', 'rev-parse', /*'--short',*/ 'HEAD'
-        } else {
-            commandLine 'git', 'rev-parse', /*'--short',*/ 'HEAD'
-        }
-        standardOutput = stdout
-    }
-    return stdout.toString().trim()/*.substring(0, 8)*/
+    def gitBinary = isMacOS() ? '/usr/bin/git' : 'git'
+    providers.exec {
+        commandLine gitBinary, 'rev-parse', 'HEAD'
+    }.standardOutput.asText.get().trim()
 }
 
 static def getCurrentDate() {
