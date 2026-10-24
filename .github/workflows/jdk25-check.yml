@@ -34,3 +34,24 @@ jobs:
           ./gradlew --version
       - name: Configure Android project using Gradle 9.1 and Java 25
         run: ./gradlew projects --stacktrace --no-daemon
+
+  windows-sdk-bootstrap:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check local.properties SDK path setup with spaces
+        shell: pwsh
+        run: |
+          $fake = Join-Path $env:RUNNER_TEMP 'GLACIA Test SDK'
+          New-Item -ItemType Directory -Force -Path (Join-Path $fake 'platforms/android-36') | Out-Null
+          & .\\scripts\\setup-android-sdk.ps1 -SdkPath $fake
+          $expected = 'sdk.dir=' + $fake.Replace('\\', '/')
+          $actual = [System.IO.File]::ReadAllText((Join-Path $PWD 'local.properties'))
+          if (-not $actual.Contains($expected)) {
+            throw "SDK path was not written correctly."
+          }
+          if (-not (git check-ignore -q local.properties)) {
+            throw "local.properties must stay gitignored."
+          }
+          Write-Host "Windows SDK bootstrap verified."
