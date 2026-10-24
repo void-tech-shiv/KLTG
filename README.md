@@ -16,9 +16,18 @@ In Android Studio, select the installed **JDK 25** for *Gradle JDK*. In the inte
 
 ```powershell
 git pull origin feat/glacia-full-client
+powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\setup-android-sdk.ps1
 .\\gradlew.bat --version
-.\\gradlew.bat projects
+.\\gradlew.bat projects --stacktrace
 ```
+
+The SDK setup script detects `ANDROID_HOME`, `ANDROID_SDK_ROOT` and the usual Windows user SDK folder. It writes an ignored `local.properties` file with a real `sdk.dir`, without committing a machine-specific path. If the SDK is in a custom directory, run:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\setup-android-sdk.ps1 -SdkPath "D:\\Android\\Sdk"
+```
+
+To find the real path, open **Android Studio → Tools → SDK Manager → Android SDK Location**. Install SDK Platform 36, NDK 27.2.12479018 and CMake 3.22.1 as indicated by the script. **Do not set `sdk.dir` to the Android Studio `jbr` folder; JDK and SDK are different.**
 
 If PowerShell uses a different Java installation from Android Studio, check `java -version` and configure your terminal's `JAVA_HOME` for JDK 25. No API keys or signing keys should be committed.
 
