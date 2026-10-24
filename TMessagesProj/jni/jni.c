@@ -12,7 +12,7 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#include "colorado/colorado.h"
+// GLACIA: no upstream proprietary Colorado native header is required.
 
 int registerNativeTgNetFunctions(JavaVM *vm, JNIEnv *env);
 int videoOnJNILoad(JavaVM *vm, JNIEnv *env);
@@ -27,9 +27,6 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
 		return -1;
 	}
 
-    /*if (!check_signature()) {
-        return JNI_ERR;
-    }*/
 
     if (videoOnJNILoad(vm, env) != JNI_TRUE) {
         return -1;
