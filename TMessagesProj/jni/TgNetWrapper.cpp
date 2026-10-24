@@ -689,17 +689,12 @@ extern "C" int registerNativeTgNetFunctions(JavaVM *vm, JNIEnv *env) {
         return JNI_FALSE;
     }
 
-//    if (secure_validator::has_jni_hook(env) || secure_validator::has_xhook() || !secure_validator::validate_signature(env)) {
-//        jclass_ConnectionsManager_onUpdate = env->GetStaticMethodID(jclass_ConnectionsManager, "onLogout", "(I)V");
-//        if (jclass_ConnectionsManager_onUpdate == nullptr) {
-//            return JNI_FALSE;
-//        }
-//    } else {
-        jclass_ConnectionsManager_onUpdate = env->GetStaticMethodID(jclass_ConnectionsManager, "onUpdate", "(I)V");
-//        if (jclass_ConnectionsManager_onUpdate == nullptr) {
-//            return JNI_FALSE;
-//        }
-//    }
+    // GLACIA: register the normal Telegram update callback. The former
+    // vendor-specific signing/obfuscation block was commented out upstream.
+    jclass_ConnectionsManager_onUpdate = env->GetStaticMethodID(jclass_ConnectionsManager, "onUpdate", "(I)V");
+    if (jclass_ConnectionsManager_onUpdate == nullptr) {
+        return JNI_FALSE;
+    }
 
     jclass_ConnectionsManager_onIntegrityCheckClassic = env->GetStaticMethodID(jclass_ConnectionsManager, "onIntegrityCheckClassic", "(IILjava/lang/String;Ljava/lang/String;)V");
     if (jclass_ConnectionsManager_onIntegrityCheckClassic == 0) {
