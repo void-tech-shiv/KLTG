@@ -1,0 +1,68 @@
+name: GLACIA JDK 25 Gradle compatibility
+on:
+  push:
+    branches: [feat/glacia-full-client]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gradle-configuration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Verify runner Android SDK
+        run: test -d "${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+      - name: Load Android Gradle settings submodules
+        run: |
+          git submodule update --init --depth 1 TMessagesProj_Modules/media
+          git submodule update --init --depth 1 TMessagesProj/lib/jlatexmath
+      - name: Configure local placeholder environment (not credentials)
+        run: cp secrets_for_ci.env.example secrets_for_ci.env
+      - name: Verify wrapper boots on JDK 25
+        run: |
+          chmod +x gradlew
+          ./gradlew --version
+      - name: Configure Android project using Gradle 9.1 and Java 25
+        run: ./gradlew projects --stacktrace --no-daemon
+
+  windows-sdk-bootstrap:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check local.properties SDK path setup with spaces
+        shell: pwsh
+        run: |
+          $fake = Join-Path $env:RUNNER_TEMP 'GLACIA Test SDK'
+          New-Item -ItemType Directory -Force -Path (Join-Path $fake 'platforms/android-36') | Out-Null
+          & .\scripts\setup-android-sdk.ps1 -SdkPath $fake
+          $expected = 'sdk.dir=' + $fake.Replace('\', '/')
+          $actual = [System.IO.File]::ReadAllText((Join-Path $PWD 'local.properties'))
+          if (-not $actual.Contains($expected)) {
+            throw "SDK path was not written correctly."
+          }
+          git check-ignore -q local.properties
+          if ($LASTEXITCODE -ne 0) {
+            throw "local.properties must stay gitignored."
+          }
+          Write-Host "Windows SDK bootstrap verified."
+
+  native-source-portability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate native source references without private upstream code
+        run: python3 scripts/check-native-source.py
