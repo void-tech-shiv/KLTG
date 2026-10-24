@@ -56,3 +56,13 @@ jobs:
             throw "local.properties must stay gitignored."
           }
           Write-Host "Windows SDK bootstrap verified."
+
+  native-source-portability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate native source references without private upstream code
+        run: python3 scripts/check-native-source.py
